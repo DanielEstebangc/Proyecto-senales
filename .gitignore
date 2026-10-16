@@ -214,5 +214,16 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Keep downloaded training data local while preserving class folders in Git.
+dataset/train/*
+!dataset/train/*/
+dataset/train/*/*
+!dataset/train/*/.gitkeep
+dataset/val/*
+!dataset/val/*/
+dataset/val/*/*
+!dataset/val/*/.gitkeep
+dataset/revisar/
+
 # Streamlit
 .streamlit/secrets.toml

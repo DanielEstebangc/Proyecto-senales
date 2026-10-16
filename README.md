@@ -79,6 +79,36 @@ python app.py
 
 Esto abrirá la interfaz gráfica en el navegador. Desde ahí podrás cargar una imagen y obtener la predicción de la señal.
 
+## Descargar imágenes para el dataset
+
+Instala las dependencias del proyecto y ejecuta desde la raíz:
+
+```bash
+pip install -r requirements.txt
+python descargar_dataset.py
+```
+
+El script busca imágenes con `bing-image-downloader` usando términos en español.
+Por defecto intenta descargar 60 imágenes por clase: 48 para `train` y 12 para
+`val`. Puedes cambiar el total con `--limit`, por ejemplo:
+
+```bash
+python descargar_dataset.py --limit 100
+```
+
+Las imágenes descargadas se guardan localmente y Git las ignora. Bing puede
+devolver resultados que no correspondan a la señal; revisa las imágenes de cada
+clase antes de entrenar el modelo. Para completar solo `PARE` y
+usar sus búsquedas alternativas, ejecuta:
+
+```bash
+python descargar_dataset.py --classes PARE
+```
+
+El script prueba búsquedas alternativas para `PARE` y evita guardar dos veces
+el mismo archivo. `PROHIBIDO_PITAR` se excluyó de la descarga automática porque
+hay pocos resultados locales confiables. La cantidad disponible depende de Bing.
+
 ## Uso de la aplicación
 
 1. Ejecuta la aplicación con `python app.py`.
