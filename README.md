@@ -1,133 +1,133 @@
-# Proyecto de Detección Inteligente de Señales de Tránsito
+# Clasificación de señales de tránsito
 
-Este proyecto tiene como objetivo desarrollar una aplicación para identificar señales de tránsito a partir de imágenes. La interfaz permite cargar una fotografía de una señal y obtener una predicción del tipo de señal detectada.
+Proyecto académico para explorar la clasificación de señales de tránsito a
+partir de imágenes. Incluye una interfaz web de demostración con Gradio, un
+script para descargar y organizar imágenes, y un script de entrenamiento con
+transfer learning usando MobileNetV2 y PyTorch.
 
-Actualmente, la aplicación cuenta con una versión de demostración basada en una interfaz web con Gradio y una lógica de clasificación provisional. En una etapa posterior, esta parte podrá reemplazarse por un modelo entrenado de visión artificial.
+> **Estado:** la interfaz todavía genera predicciones aleatorias de demostración.
+> No carga el modelo entrenado. El entrenamiento y la aplicación son flujos
+> separados por ahora.
 
-## Objetivo
-
-- Detectar señales de tránsito reglamentarias desde imágenes.
-- Crear una interfaz sencilla para pruebas y demos.
-- Preparar la base para integrar un modelo de clasificación más robusto.
-
-## Funcionalidades
-
-- Carga de imagen desde el equipo.
-- Interfaz gráfica con Gradio.
-- Predicción de la categoría de señal.
-- Visualización del resultado con nivel de confianza.
-
-## Estructura del proyecto
+## Contenido del proyecto
 
 ```text
 proyecto_senales/
-├── app.py                 # Aplicación principal con la interfaz Gradio
-├── dataset/               # Conjunto de datos para entrenamiento y pruebas
-├── modelo/                # Archivos relacionados con el modelo entrenado
-├── notebooks/             # Notebooks para análisis y experimentación
-├── requirements.txt       # Dependencias del proyecto
-├── .venv/                 # Entorno virtual del proyecto
-└── README.md              # Documentación del proyecto
+├── app.py                  # Interfaz Gradio y clasificador de demostración
+├── descargar_dataset.py    # Descarga y división de imágenes (80/20)
+├── dataset/
+│   ├── train/              # Imágenes para entrenamiento, organizadas por clase
+│   └── val/                # Imágenes para validación, organizadas por clase
+├── modelo/
+│   ├── entrenar.py         # Entrenamiento de MobileNetV2
+│   └── modelo_senales.pth  # Pesos generados localmente al entrenar
+├── requirements.txt        # Dependencias de Python
+└── README.md
 ```
 
-## Tecnologías utilizadas
+El entorno virtual `.venv` y las imágenes descargadas son archivos locales y
+no forman parte del repositorio.
 
-- Python
-- Gradio
-- PyTorch
-- TorchVision
-- Pillow
-- NumPy
+## Clases del dataset
 
-## Requisitos previos
+El entrenador y el descargador usan estas nueve clases:
 
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
+- `CEDA_EL_PASO`
+- `NO_PASE`
+- `PARE`
+- `PEATONES_PROHIBIDOS`
+- `PROHIBIDO_ADELANTAR`
+- `PROHIBIDO_GIRAR_DER`
+- `PROHIBIDO_GIRAR_IZQ`
+- `PROHIBIDO_PARQUEAR`
+- `VELOCIDAD_MAXIMA`
 
-- Python 3.10 o superior
-- pip
-- Entorno virtual (opcional, pero recomendado)
+La interfaz de demostración en `app.py` muestra una lista distinta de diez
+etiquetas; entre ellas aparece `PROHIBIDO_PITAR`, que no está incluida en el
+dataset ni en el descargador.
 
-## Instalación
+## Requisitos
 
-1. Clona o descarga este repositorio.
-2. Abre una terminal en la carpeta del proyecto.
-3. Crea y activa un entorno virtual:
+- Python 3.10 o superior.
+- `pip`.
+- Conexión a Internet para descargar imágenes y, la primera vez que se entrena,
+  para obtener los pesos preentrenados de MobileNetV2.
+- GPU compatible con CUDA opcional. Sin ella, PyTorch puede entrenar en CPU.
 
-```bash
-python -m venv .venv
-```
+## Instalación en Windows (PowerShell)
 
-En Windows PowerShell:
+Ejecuta los comandos desde la carpeta raíz del proyecto:
 
 ```powershell
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-4. Instala las dependencias:
-
-```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Ejecución
+Si PowerShell bloquea la activación del entorno, puedes ejecutar los scripts
+con el intérprete de `.venv` directamente:
 
-Para iniciar la aplicación:
-
-```bash
-python app.py
+```powershell
+.\.venv\Scripts\python.exe .\app.py
 ```
 
-Esto abrirá la interfaz gráfica en el navegador. Desde ahí podrás cargar una imagen y obtener la predicción de la señal.
+## Descargar imágenes
 
-## Descargar imágenes para el dataset
+Desde la raíz del proyecto, ejecuta:
 
-Instala las dependencias del proyecto y ejecuta desde la raíz:
-
-```bash
-pip install -r requirements.txt
-python descargar_dataset.py
+```powershell
+python .\descargar_dataset.py
 ```
 
-El script busca imágenes con `bing-image-downloader` usando términos en español.
-Por defecto intenta descargar 60 imágenes por clase: 48 para `train` y 12 para
-`val`. Puedes cambiar el total con `--limit`, por ejemplo:
+Por defecto, el descargador intenta obtener hasta 60 imágenes por clase y las
+reparte entre `train` y `val` aproximadamente en proporción 80/20. Para cambiar
+el objetivo por clase o descargar solo algunas clases:
 
-```bash
-python descargar_dataset.py --limit 100
+```powershell
+python .\descargar_dataset.py --limit 100
+python .\descargar_dataset.py --classes PARE CEDA_EL_PASO
 ```
 
-Las imágenes descargadas se guardan localmente y Git las ignora. Bing puede
-devolver resultados que no correspondan a la señal; revisa las imágenes de cada
-clase antes de entrenar el modelo. Para completar solo `PARE` y
-usar sus búsquedas alternativas, ejecuta:
+La cantidad final depende de los resultados disponibles en Bing. Revisa
+manualmente las imágenes y elimina las que no correspondan a su clase antes
+de entrenar. El descargador guarda las imágenes dentro de `dataset/`; Git las
+ignora.
 
-```bash
-python descargar_dataset.py --classes PARE
+tener en cuenta que aveces descarga imagenes que no sirven, entonce recomendado limpiar manualmente y verificar las imagenes
+
+## Entrenar el modelo
+
+Comprueba que existan imágenes válidas dentro de las carpetas de clase de
+`dataset/train` y `dataset/val`. Luego, desde la raíz del proyecto, ejecuta:
+
+```powershell
+python .\modelo\entrenar.py
 ```
 
-El script prueba búsquedas alternativas para `PARE` y evita guardar dos veces
-el mismo archivo. `PROHIBIDO_PITAR` se excluyó de la descarga automática porque
-hay pocos resultados locales confiables. La cantidad disponible depende de Bing.
+No ejecutes `python entrenar.py` desde la raíz: el script está dentro de
+`modelo`. Ejecutarlo desde la raíz también permite que encuentre `dataset/` y
+guarde el resultado en `modelo/modelo_senales.pth`.
 
-## Uso de la aplicación
+El script redimensiona las imágenes a 224 × 224, usa MobileNetV2 preentrenada,
+congela sus capas base y entrena la capa clasificadora durante cinco épocas.
+Al finalizar guarda el estado del modelo y los nombres de las clases en el
+archivo `.pth`. El entrenamiento depende de tener imágenes en ambas divisiones
+y de que las clases estén organizadas en subcarpetas.
 
-1. Ejecuta la aplicación con `python app.py`.
-2. En la interfaz, haz clic en "Cargar foto de la señal".
-3. Selecciona una imagen de una señal de tránsito.
-4. La aplicación devuelve la clase de la señal y un valor de confianza aproximado.
+## Ejecutar la aplicación
 
-## Estado actual
+Desde la raíz del proyecto:
 
-La versión actual es una demo funcional para evidenciar la interfaz y la lógica de clasificación. Los nombres de señales que aparecen en la app corresponden a clases reglamentarias de ejemplo y servirán como base para la integración del modelo real.
+```powershell
+python .\app.py
+```
 
-## Próximos pasos recomendados
+Gradio mostrará una dirección local en la terminal para abrir la interfaz en el
+navegador. La clasificación actual es aleatoria y sirve únicamente para probar
+la interfaz; todavía no utiliza `modelo/modelo_senales.pth`.
 
-- Preparar y organizar el dataset.
-- Entrenar un modelo CNN o un modelo de visión por computador.
-- Guardar el modelo entrenado en `modelo/`.
-- Reemplazar la predicción aleatoria por la salida real del modelo.
-- Mejorar la validación y métricas de rendimiento.
+## Dependencias
 
-## Notas
-
-Este proyecto se encuentra en una etapa inicial de desarrollo. La estructura y la lógica ya están preparadas para evolucionar hacia una solución completa de clasificación automática de señales de tránsito.
+Las dependencias están listadas en [requirements.txt](./requirements.txt):
+PyTorch, TorchVision, Gradio, Pillow, NumPy y Bing Image Downloader.
